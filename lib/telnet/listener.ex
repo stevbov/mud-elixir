@@ -1,6 +1,8 @@
 defmodule Telnet.Listener do
+  require Logger
+
   def start_link(port) do
-    IO.puts("Telnet listener starting on port #{port}")
+    Logger.info("Telnet listening on port #{port}")
     :ranch.start_listener(__MODULE__, :ranch_tcp, [{:port, port}], Telnet.Protocol, [])
   end
 
