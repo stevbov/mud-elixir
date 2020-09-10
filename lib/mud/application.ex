@@ -3,16 +3,15 @@ defmodule Mud.Application do
   # for more information on OTP Applications
   @moduledoc false
 
+  @default_port 5500
+
   use Application
 
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Mud.Worker.start_link(arg)
-      # {Mud.Worker, arg}
+      {Telnet.Listener, [@default_port]}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Mud.Supervisor]
     Supervisor.start_link(children, opts)
   end
