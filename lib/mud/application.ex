@@ -9,7 +9,7 @@ defmodule Mud.Application do
 
   def start(_type, _args) do
     children = [
-      {Telnet.Listener, [@default_port]}
+      {Mud.Telnet.Listener, [@default_port]}
     ]
 
     opts = [strategy: :one_for_one, name: Mud.Supervisor]

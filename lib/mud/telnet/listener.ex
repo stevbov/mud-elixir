@@ -1,9 +1,9 @@
-defmodule Telnet.Listener do
+defmodule Mud.Telnet.Listener do
   require Logger
 
   def start_link(port) do
     Logger.info("Telnet listening on port #{port}")
-    :ranch.start_listener(__MODULE__, :ranch_tcp, [{:port, port}], Telnet.Protocol, [])
+    :ranch.start_listener(__MODULE__, :ranch_tcp, [{:port, port}], Mud.Telnet.Protocol, [])
   end
 
   def child_spec(args) do

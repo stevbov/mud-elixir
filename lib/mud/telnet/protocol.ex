@@ -1,4 +1,4 @@
-defmodule Telnet.Protocol do
+defmodule Mud.Telnet.Protocol do
   use GenServer
   require Logger
 
