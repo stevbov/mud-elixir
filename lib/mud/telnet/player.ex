@@ -1,5 +1,9 @@
 defmodule Mud.Telnet.Player do
-  alias Mud.Telnet.Protocol
+  alias Mud.Telnet.{Player, Protocol}
+  alias Mud.Game.Actor
+  alias Mud.Game.Server, as: GameServer
+
+  defstruct pid: nil
 
   def start_link(protocol) do
     GenServer.start_link(__MODULE__, protocol)
@@ -9,13 +13,47 @@ defmodule Mud.Telnet.Player do
     GenServer.cast(player, {:input, input})
   end
 
+  def perceive(player, message) do
+    GenServer.cast(player, {:perceive, message})
+  end
+
   # GenServer callbacks
   def init(protocol) do
-    {:ok, %{protocol: protocol, state: :welcome}}
+    send(self(), :welcome_message)
+    {:ok, %{protocol: protocol, state: :welcome, actor_id: nil}}
+  end
+
+  def handle_cast({:input, input}, state = %{protocol: protocol, state: :get_name}) do
+    actor = Actor.new() |> Map.put(:name, input)
+    GameServer.add_actor(actor, %Player{pid: self()})
+    GenServer.cast(self(), {:input, "look"})
+    Protocol.writeline(protocol, "Welcome to the MUD, #{actor.name}!")
+    {:noreply, %{state | state: :playing, actor_id: actor.id}}
+  end
+
+  def handle_cast({:input, input}, state = %{state: :playing, actor_id: actor_id}) do
+    GameServer.handle_input(actor_id, input)
+    {:noreply, %{state | state: :playing}}
+  end
+
+  def handle_cast({:perceive, message}, state = %{protocol: protocol, state: :playing}) do
+    Protocol.writeline(protocol, message)
+    {:noreply, state}
   end
 
   def handle_cast({:input, input}, state = %{protocol: protocol}) do
-    Protocol.write(protocol, "Echo: #{input}")
+    Protocol.writeline(protocol, "Echo: #{input}")
     {:noreply, state}
+  end
+
+  def handle_info(:welcome_message, state = %{protocol: protocol}) do
+    Protocol.write(protocol, "Welcome to the game! What name do you want? ")
+    {:noreply, Map.put(state, :state, :get_name)}
+  end
+end
+
+defimpl Mud.Game.Perceptor, for: Mud.Telnet.Player do
+  def perceive(%{pid: pid}, message) do
+    Mud.Telnet.Player.perceive(pid, message)
   end
 end
