@@ -1,5 +1,5 @@
 defmodule Mud.Server do
-  alias Mud.{Perceptor, Room, World}
+  alias Mud.{Perceiver, Room, World}
 
   use GenServer
   require Logger
@@ -16,8 +16,8 @@ defmodule Mud.Server do
     }
   end
 
-  def add_actor(actor, perceptor) do
-    GenServer.cast(__MODULE__, {:add_actor, actor, perceptor})
+  def add_actor(actor, perceiver) do
+    GenServer.cast(__MODULE__, {:add_actor, actor, perceiver})
   end
 
   def handle_input(actor_id, input) do
@@ -30,28 +30,28 @@ defmodule Mud.Server do
       World.new()
       |> World.add_room(Room.new())
 
-    {:ok, %{world: world, perceptors: %{}}}
+    {:ok, %{world: world, perceivers: %{}}}
   end
 
-  def handle_cast({:add_actor, actor, perceptor}, state = %{world: world, perceptors: perceptors}) do
+  def handle_cast({:add_actor, actor, perceiver}, state = %{world: world, perceivers: perceivers}) do
     new_world = World.add_actor(world, actor)
-    new_perceptors = Map.put(perceptors, actor.id, perceptor)
-    {:noreply, %{state | world: new_world, perceptors: new_perceptors}}
+    new_perceivers = Map.put(perceivers, actor.id, perceiver)
+    {:noreply, %{state | world: new_world, perceivers: new_perceivers}}
   end
 
-  def handle_cast({:input, actor_id, "look"}, state = %{world: world, perceptors: perceptors}) do
+  def handle_cast({:input, actor_id, "look"}, state = %{world: world, perceivers: perceivers}) do
     actor = Map.get(world.actors, actor_id)
     room = Map.get(world.rooms, actor.room_id)
-    perceptor = Map.get(perceptors, actor_id)
+    perceiver = Map.get(perceivers, actor_id)
 
-    Perceptor.perceive(perceptor, "#{room.name}\r\n#{room.description}\r\n")
+    Perceiver.perceive(perceiver, "#{room.name}\r\n#{room.description}\r\n")
     {:noreply, state}
   end
 
-  def handle_cast({:input, actor_id, input}, state = %{perceptors: perceptors}) do
-    perceptor = Map.get(perceptors, actor_id)
+  def handle_cast({:input, actor_id, input}, state = %{perceivers: perceivers}) do
+    perceiver = Map.get(perceivers, actor_id)
 
-    Perceptor.perceive(perceptor, "Huh!?\r\n")
+    Perceiver.perceive(perceiver, "Huh!?\r\n")
     {:noreply, state}
   end
 end

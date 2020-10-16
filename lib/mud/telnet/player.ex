@@ -52,7 +52,7 @@ defmodule Mud.Telnet.Player do
   end
 end
 
-defimpl Mud.Perceptor, for: Mud.Telnet.Player do
+defimpl Mud.Perceiver, for: Mud.Telnet.Player do
   def perceive(%{pid: pid}, message) do
     Mud.Telnet.Player.perceive(pid, message)
   end
