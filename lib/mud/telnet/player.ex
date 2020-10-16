@@ -1,7 +1,7 @@
 defmodule Mud.Telnet.Player do
   alias Mud.Telnet.{Player, Protocol}
-  alias Mud.Game.Actor
-  alias Mud.Game.Server, as: GameServer
+  alias Mud.Actor
+  alias Mud.Server, as: GameServer
 
   defstruct pid: nil
 
@@ -52,7 +52,7 @@ defmodule Mud.Telnet.Player do
   end
 end
 
-defimpl Mud.Game.Perceptor, for: Mud.Telnet.Player do
+defimpl Mud.Perceptor, for: Mud.Telnet.Player do
   def perceive(%{pid: pid}, message) do
     Mud.Telnet.Player.perceive(pid, message)
   end

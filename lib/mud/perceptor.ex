@@ -1,3 +1,3 @@
-defprotocol Mud.Game.Perceptor do
+defprotocol Mud.Perceptor do
   def perceive(perceptor, message)
 end

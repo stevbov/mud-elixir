@@ -1,5 +1,5 @@
-defmodule Mud.Game.Actor do
-  alias Mud.Game.Actor
+defmodule Mud.Actor do
+  alias Mud.Actor
 
   defstruct id: nil, name: "", room_id: nil
 

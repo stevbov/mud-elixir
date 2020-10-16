@@ -1,5 +1,5 @@
-defmodule Mud.Game.Server do
-  alias Mud.Game.{Perceptor, Room, World}
+defmodule Mud.Server do
+  alias Mud.{Perceptor, Room, World}
 
   use GenServer
   require Logger

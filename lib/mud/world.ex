@@ -1,5 +1,5 @@
-defmodule Mud.Game.World do
-  alias Mud.Game.World
+defmodule Mud.World do
+  alias Mud.World
 
   defstruct rooms: %{}, default_room_id: nil, actors: %{}
 
