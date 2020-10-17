@@ -1,12 +1,16 @@
 defmodule Mud.Actor do
   alias Mud.Actor
 
-  defstruct id: nil, name: "", room_id: nil
+  defstruct id: nil, name: "", perceiver: nil
 
-  def new(id \\ nil) do
+  @type id_t :: String.t()
+  @type t :: %__MODULE__{id: id_t, name: String.t(), perceiver: term}
+
+  def new(perceiver, id \\ nil) do
     %Actor{
       id: id || UUID.uuid4(),
-      name: "a shadowy figure"
+      name: "a shadowy figure",
+      perceiver: perceiver
     }
   end
 end

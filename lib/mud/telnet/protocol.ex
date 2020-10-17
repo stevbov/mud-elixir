@@ -18,6 +18,10 @@ defmodule Mud.Telnet.Protocol do
     GenServer.cast(protocol, {:send, "#{str}\r\n"})
   end
 
+  def disconnect(protocol) do
+    GenServer.cast(protocol, :disconnect)
+  end
+
   # GenServer callbacks
   def init(ref, transport) do
     {:ok, socket} = :ranch.handshake(ref)
@@ -37,6 +41,11 @@ defmodule Mud.Telnet.Protocol do
 
   def handle_cast({:send, str}, state = %{transport: transport, socket: socket}) do
     transport.send(socket, str)
+    {:noreply, state}
+  end
+
+  def handle_cast(:disconnect, state = %{transport: transport, socket: socket}) do
+    transport.shutdown(socket)
     {:noreply, state}
   end
 

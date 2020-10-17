@@ -1,7 +1,7 @@
 defmodule Mud.Telnet.Player do
   alias Mud.Telnet.{Player, Protocol}
   alias Mud.Actor
-  alias Mud.Server, as: MudServer
+  # alias Mud.Server, as: MudServer
 
   defstruct pid: nil
 
@@ -24,25 +24,52 @@ defmodule Mud.Telnet.Player do
   end
 
   def handle_cast({:input, input}, state = %{protocol: protocol, state: :get_name}) do
-    actor = Actor.new() |> Map.put(:name, input)
-    MudServer.add_actor(actor, %Player{pid: self()})
+    actor = Actor.new(%Player{pid: self()}) |> Map.put(:name, input)
+    Mud.CommandDispatcher.add_actor(actor)
     GenServer.cast(self(), {:input, "look"})
     Protocol.writeline(protocol, "Welcome to the MUD, #{actor.name}!")
     {:noreply, %{state | state: :playing, actor_id: actor.id}}
   end
 
-  def handle_cast({:input, input}, state = %{state: :playing, actor_id: actor_id}) do
-    MudServer.handle_input(actor_id, input)
-    {:noreply, %{state | state: :playing}}
+  def handle_cast(
+        {:input, input},
+        state = %{protocol: protocol, state: :playing, actor_id: actor_id}
+      ) do
+    case Mud.Command.parse_command(input) do
+      {:ok, {module, args}} ->
+        Mud.CommandDispatcher.dispatch(actor_id, module, args)
+
+      _ ->
+        Protocol.writeline(protocol, "Huh!?")
+    end
+
+    {:noreply, state}
   end
 
-  def handle_cast({:perceive, message}, state = %{protocol: protocol, state: :playing}) do
+  def handle_cast(
+        {:perceive, {Mud.Command.Look, room}},
+        state = %{protocol: protocol, state: :playing}
+      ) do
+    message = "#{room.name}\r\n#{room.description}\r\n"
     Protocol.writeline(protocol, message)
     {:noreply, state}
   end
 
-  def handle_cast({:input, input}, state = %{protocol: protocol}) do
-    Protocol.writeline(protocol, "Echo: #{input}")
+  def handle_cast(
+        {:perceive, {Mud.Command.Quit, :success}},
+        state = %{protocol: protocol, state: :playing}
+      ) do
+    message = "You quit.\r\n"
+    Protocol.writeline(protocol, message)
+    {:noreply, state}
+  end
+
+  def handle_cast(
+        {:perceive, {Mud.Command.Quit, :failure}},
+        state = %{protocol: protocol, state: :playing}
+      ) do
+    message = "You must type 'quit' to quit.\r\n"
+    Protocol.writeline(protocol, message)
     {:noreply, state}
   end
 
