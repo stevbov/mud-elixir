@@ -3,17 +3,15 @@ defmodule Mud.Command.Quit do
 
   def scope(), do: :world
 
-  def parse(input) do
-    [start | _rest] = String.split(input, " ", trim: true, parts: 2)
-
+  def parse(cmd, _args, full_input) do
     cond do
-      String.starts_with?("quit", start) -> %{input: start}
+      String.starts_with?("quit", cmd) -> %{full_input: full_input}
       true -> nil
     end
   end
 
-  def execute(actor, world_pid, %{input: start}) do
-    case start do
+  def execute(actor, world_pid, %{full_input: full_input}) do
+    case full_input do
       "quit" ->
         Mud.WorldServer.remove_actor(world_pid, actor.id)
         Mud.Perceiver.perceive(actor.perceiver, {__MODULE__, :success})

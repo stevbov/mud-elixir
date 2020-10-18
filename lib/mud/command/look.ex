@@ -3,10 +3,8 @@ defmodule Mud.Command.Look do
 
   def scope(), do: :room
 
-  def parse(input) do
-    [start | _rest] = String.split(input, " ", trim: true, parts: 2)
-
-    if String.starts_with?("look", start) do
+  def parse(cmd, _args, _full_input) do
+    if String.starts_with?("look", cmd) do
       %{}
     else
       nil
