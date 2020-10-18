@@ -35,12 +35,14 @@ defmodule Mud.Telnet.Player do
         {:input, input},
         state = %{protocol: protocol, state: :playing, actor_id: actor_id}
       ) do
-    case Mud.Command.parse_command(input) do
-      {:ok, {module, args}} ->
-        Mud.CommandDispatcher.dispatch(actor_id, module, args)
+    if String.trim(input) != "" do
+      case Mud.Command.parse_command(input) do
+        {:ok, {module, args}} ->
+          Mud.CommandDispatcher.dispatch(actor_id, module, args)
 
-      _ ->
-        Protocol.writeline(protocol, "Huh!?")
+        _ ->
+          Protocol.writeline(protocol, "Huh!?")
+      end
     end
 
     {:noreply, state}
