@@ -10,6 +10,22 @@ defmodule Mud.Telnet.Protocol do
     {:ok, pid}
   end
 
+  def init(ref, transport) do
+    {:ok, socket} = :ranch.handshake(ref)
+    :ok = transport.setopts(socket, [{:active, true}])
+    {:ok, {ip, _port}} = :inet.peername(socket)
+    ip = :inet.ntoa(ip)
+    {:ok, player} = Player.start_link(self())
+    Logger.info("Socket Connect - ip [#{ip}]")
+
+    :gen_server.enter_loop(__MODULE__, [], %{
+      ip: ip,
+      player: player,
+      transport: transport,
+      socket: socket
+    })
+  end
+
   def ip(protocol) do
     GenServer.call(protocol, :ip)
   end
@@ -27,20 +43,10 @@ defmodule Mud.Telnet.Protocol do
   end
 
   # GenServer callbacks
-  def init(ref, transport) do
-    {:ok, socket} = :ranch.handshake(ref)
-    :ok = transport.setopts(socket, [{:active, true}])
-    {:ok, {ip, _port}} = :inet.peername(socket)
-    ip = :inet.ntoa(ip)
-    {:ok, player} = Player.start_link(self())
-    Logger.info("Socket Connect - ip [#{ip}]")
 
-    :gen_server.enter_loop(__MODULE__, [], %{
-      ip: ip,
-      player: player,
-      transport: transport,
-      socket: socket
-    })
+  # we don't actually use this init
+  def init(_args) do
+    {:error}
   end
 
   def handle_call(:ip, _from, state = %{ip: ip}) do
@@ -57,7 +63,7 @@ defmodule Mud.Telnet.Protocol do
     {:stop, :normal, state}
   end
 
-  def handle_info({:tcp, socket, data}, state = %{player: player}) do
+  def handle_info({:tcp, _socket, data}, state = %{player: player}) do
     Player.handle_input(player, String.trim(data))
     {:noreply, state}
   end
