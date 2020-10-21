@@ -1,7 +1,7 @@
 defmodule Mud.Telnet.Player do
   alias Mud.Telnet.{Player, Protocol}
   alias Mud.Actor
-  # alias Mud.Server, as: MudServer
+  require Logger
 
   defstruct pid: nil
 
@@ -59,11 +59,13 @@ defmodule Mud.Telnet.Player do
 
   def handle_cast(
         {:perceive, {Mud.Command.Quit, :success}},
-        state = %{protocol: protocol, state: :playing}
+        state = %{actor_id: actor_id, protocol: protocol, state: :playing}
       ) do
     message = "You quit.\r\n"
     Protocol.writeline(protocol, message)
-    {:noreply, state}
+    Logger.info("Player [#{actor_id}] from ip [#{Protocol.ip(protocol)}] quit.")
+    Protocol.disconnect(protocol)
+    {:stop, :normal, state}
   end
 
   def handle_cast(

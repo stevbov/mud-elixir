@@ -10,6 +10,10 @@ defmodule Mud.Telnet.Protocol do
     {:ok, pid}
   end
 
+  def ip(protocol) do
+    GenServer.call(protocol, :ip)
+  end
+
   def write(protocol, str) do
     GenServer.cast(protocol, {:send, str})
   end
@@ -39,14 +43,18 @@ defmodule Mud.Telnet.Protocol do
     })
   end
 
+  def handle_call(:ip, _from, state = %{ip: ip}) do
+    {:reply, ip, state}
+  end
+
   def handle_cast({:send, str}, state = %{transport: transport, socket: socket}) do
     transport.send(socket, str)
     {:noreply, state}
   end
 
   def handle_cast(:disconnect, state = %{transport: transport, socket: socket}) do
-    transport.shutdown(socket)
-    {:noreply, state}
+    transport.close(socket)
+    {:stop, :normal, state}
   end
 
   def handle_info({:tcp, socket, data}, state = %{player: player}) do
@@ -55,7 +63,7 @@ defmodule Mud.Telnet.Protocol do
   end
 
   def handle_info({:tcp_closed, socket}, state = %{ip: ip, transport: transport}) do
-    Logger.info("Socket Disconnect - ip [#{ip}]")
+    Logger.info("Socket disconnected - ip [#{ip}]")
     transport.close(socket)
     {:stop, :normal, state}
   end
