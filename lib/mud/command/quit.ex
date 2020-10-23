@@ -10,15 +10,22 @@ defmodule Mud.Command.Quit do
     end
   end
 
-  def execute(actor, world_pid, %{full_input: full_input}) do
+  def execute(actor_id, room_pid, world_pid, %{full_input: full_input}) do
     case full_input do
       "quit" ->
-        Mud.WorldServer.remove_actor(world_pid, actor.id)
-        Mud.Perceiver.perceive(actor.perceiver, {__MODULE__, :success})
+        Mud.RoomServer.run(room_pid, fn room ->
+          actor = Mud.Room.find_actor(room, actor_id)
+          Mud.Action.dispatch({__MODULE__, :success}, :room, %Mud.Situation{actor: actor, room: room})
+          {:ok, nil, room}
+        end)
+        Mud.WorldServer.remove_actor(world_pid, actor_id)
         {:ok}
-
       _ ->
-        Mud.Perceiver.perceive(actor.perceiver, {__MODULE__, :failure})
+        Mud.RoomServer.run(room_pid, fn room ->
+          actor = Mud.Room.find_actor(room, actor_id)
+          Mud.Action.dispatch({__MODULE__, :failure}, :actor, %Mud.Situation{actor: actor})
+          {:ok, nil, room}
+        end)
         {:ok}
     end
   end

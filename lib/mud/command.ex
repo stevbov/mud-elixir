@@ -5,7 +5,8 @@ defmodule Mud.Command do
 
   @callback scope() :: scopes
   @callback parse(String.t(), String.t(), String.t()) :: on_parse
-  @callback execute(Mud.Actor.t(), term, args) :: term
+  # this doesn't really fit anymore... probably need to come up with a better design
+  #@callback execute(Mud.Actor.t(), term, args) :: term
 
   @commands [
     Mud.Command.Look,

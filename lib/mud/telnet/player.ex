@@ -13,8 +13,8 @@ defmodule Mud.Telnet.Player do
     GenServer.cast(player, {:input, input})
   end
 
-  def perceive(player, message) do
-    GenServer.cast(player, {:perceive, message})
+  def perceive(player, act, role, situation) do
+    GenServer.cast(player, {:perceive, act, role, situation})
   end
 
   # GenServer callbacks
@@ -48,32 +48,41 @@ defmodule Mud.Telnet.Player do
     {:noreply, state}
   end
 
-  def handle_cast(
-        {:perceive, {Mud.Command.Look, room}},
-        state = %{protocol: protocol, state: :playing}
-      ) do
-    message = "#{room.name}\r\n#{room.description}\r\n"
-    Protocol.writeline(protocol, message)
+  def handle_cast({:perceive, Mud.Command.Look, :actor, situation}, state = %{protocol: protocol, state: :playing}) do
+    actors_str = situation.room.actors
+    |> Enum.filter(fn actor -> actor.id != situation.actor.id end)
+    |> Enum.map(fn actor -> "You see #{actor.name} standing here.\r\n" end)
+
+    Protocol.writeline(protocol, "#{situation.room.name}\r\n#{situation.room.description}\r\n#{actors_str}")
     {:noreply, state}
   end
 
   def handle_cast(
-        {:perceive, {Mud.Command.Quit, :success}},
+        {:perceive, {Mud.Command.Quit, :success}, role, situation},
         state = %{actor_id: actor_id, protocol: protocol, state: :playing}
       ) do
-    message = "You quit.\r\n"
-    Protocol.writeline(protocol, message)
-    Logger.info("Player [#{actor_id}] from ip [#{Protocol.ip(protocol)}] quit.")
-    Protocol.disconnect(protocol)
-    {:stop, :normal, state}
+    case role do
+      :actor ->
+        Protocol.writeline(protocol, "You quit.")
+        Logger.info("Player [#{actor_id}] from ip [#{Protocol.ip(protocol)}] quit.")
+        Protocol.disconnect(protocol)
+        {:stop, :normal, state}
+      _ ->
+        Protocol.writeline(protocol, "#{situation.actor.name} quits.")
+        {:noreply, state}
+    end
   end
 
   def handle_cast(
-        {:perceive, {Mud.Command.Quit, :failure}},
+        {:perceive, {Mud.Command.Quit, :failure}, :actor, _situation},
         state = %{protocol: protocol, state: :playing}
       ) do
-    message = "You must type 'quit' to quit.\r\n"
-    Protocol.writeline(protocol, message)
+    Protocol.writeline(protocol, "You must type 'quit' to quit.")
+    {:noreply, state}
+  end
+
+  def handle_cast({:perceive, action, role}, state) do
+    Logger.error("Mud.Player.perceive - unhandled action #{inspect action}, role #{inspect role}")
     {:noreply, state}
   end
 
@@ -84,7 +93,7 @@ defmodule Mud.Telnet.Player do
 end
 
 defimpl Mud.Perceiver, for: Mud.Telnet.Player do
-  def perceive(%{pid: pid}, message) do
-    Mud.Telnet.Player.perceive(pid, message)
+  def perceive(%{pid: pid}, act, role, situation) do
+    Mud.Telnet.Player.perceive(pid, act, role, situation)
   end
 end

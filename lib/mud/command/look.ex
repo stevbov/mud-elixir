@@ -12,7 +12,7 @@ defmodule Mud.Command.Look do
   end
 
   def execute(actor, room, _args) do
-    Mud.Perceiver.perceive(actor.perceiver, {__MODULE__, room})
+    Mud.Action.dispatch(Mud.Command.Look, :actor, %Mud.Situation{actor: actor, room: room})
     {:ok, nil, room}
   end
 end

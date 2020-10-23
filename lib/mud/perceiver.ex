@@ -1,3 +1,3 @@
 defprotocol Mud.Perceiver do
-  def perceive(perceiver, message)
+  def perceive(perceiver, act, role, situation)
 end

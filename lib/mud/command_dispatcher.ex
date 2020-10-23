@@ -33,14 +33,7 @@ defmodule Mud.CommandDispatcher do
 
       :world ->
         room_pid = Mud.WorldServer.find_actor_room_pid(world_pid, actor_id)
-
-        actor =
-          Mud.RoomServer.run(room_pid, fn room ->
-            actor = Mud.Room.find_actor(room, actor_id)
-            {:ok, actor, room}
-          end)
-
-        module.execute(actor, world_pid, args)
+        module.execute(actor_id, room_pid, world_pid, args)
     end
 
     {:reply, :ok, world_pid}
