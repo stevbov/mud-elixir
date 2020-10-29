@@ -1,31 +1,39 @@
 defmodule Mud.WorldServer do
+  alias Mud.{Actor, Room}
+
   use GenServer
 
   require Logger
 
   defstruct room_pids: %{}, actor_rooms: %{}, default_room_id: nil
 
+  @spec start_link() :: {:ok, pid}
   def start_link() do
     Logger.info("World starting")
     GenServer.start_link(__MODULE__, nil)
   end
 
+  @spec find_actor_room(pid, Actor.id_t()) :: Room.t() | nil
   def find_actor_room(pid, actor_id) do
     GenServer.call(pid, {:find_actor_room, actor_id})
   end
 
+  @spec find_actor_room_pid(pid, Actor.id_t()) :: pid | nil
   def find_actor_room_pid(pid, actor_id) do
     GenServer.call(pid, {:find_actor_room_pid, actor_id})
   end
 
+  @spec add_room(pid, Room.t()) :: :ok
   def add_room(pid, room) do
     GenServer.call(pid, {:add_room, room})
   end
 
+  @spec add_actor(pid, Actor.t(), Room.id_t() | nil) :: Room.id_t()
   def add_actor(pid, actor, to_room_id \\ nil) do
     GenServer.call(pid, {:add_actor, actor, to_room_id})
   end
 
+  @spec remove_actor(pid, Actor.id_t()) :: :ok
   def remove_actor(pid, actor_id) do
     GenServer.call(pid, {:remove_actor, actor_id})
   end
@@ -92,6 +100,6 @@ defmodule Mud.WorldServer do
     end)
 
     updated_state = %{state | actor_rooms: updated_actor_rooms}
-    {:reply, nil, updated_state}
+    {:reply, :ok, updated_state}
   end
 end

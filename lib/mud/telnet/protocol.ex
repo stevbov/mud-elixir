@@ -26,20 +26,24 @@ defmodule Mud.Telnet.Protocol do
     })
   end
 
-  def ip(protocol) do
-    GenServer.call(protocol, :ip)
+  @spec ip(pid) :: any
+  def ip(pid) do
+    GenServer.call(pid, :ip)
   end
 
-  def write(protocol, str) do
-    GenServer.cast(protocol, {:send, str})
+  @spec write(pid, String.t()) :: :ok
+  def write(pid, str) do
+    GenServer.cast(pid, {:send, str})
   end
 
-  def writeline(protocol, str) do
-    GenServer.cast(protocol, {:send, "#{str}\r\n"})
+  @spec writeline(pid, String.t()) :: :ok
+  def writeline(pid, str) do
+    GenServer.cast(pid, {:send, "#{str}\r\n"})
   end
 
-  def disconnect(protocol) do
-    GenServer.cast(protocol, :disconnect)
+  @spec disconnect(pid) :: :ok
+  def disconnect(pid) do
+    GenServer.cast(pid, :disconnect)
   end
 
   # GenServer callbacks

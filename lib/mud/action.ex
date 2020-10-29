@@ -1,4 +1,9 @@
 defmodule Mud.Action do
+  alias Mud.{Actor, Situation}
+
+  @type role :: :actor | :target | :other
+
+  @spec dispatch(term, term, Situation.t()) :: any
   def dispatch(act, to, situation) do
     case to do
       :actor ->
@@ -15,6 +20,7 @@ defmodule Mud.Action do
     end
   end
 
+  @spec role(Situation.t(), Actor.t()) :: role
   def role(situation, actor) do
     cond do
       situation.actor.id == actor.id -> :actor
@@ -25,6 +31,9 @@ defmodule Mud.Action do
 end
 
 defmodule Mud.Situation do
-  @type t :: %__MODULE__{actor: Mud.Actor.t(), room: Mud.Room.t(), target: Mud.Actor.t()}
+  alias Mud.{Actor, Room}
+
   defstruct actor: nil, target: nil, room: nil
+
+  @type t :: %__MODULE__{actor: Actor.t() | nil, room: Room.t() | nil, target: Actor.t() | nil}
 end
