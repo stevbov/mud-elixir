@@ -3,11 +3,15 @@ defmodule Mud.Action do
     case to do
       :actor ->
         Mud.Perceiver.perceive(situation.actor.perceiver, act, :actor, situation)
+
       :target ->
         Mud.Perceiver.perceive(situation.target.perceiver, act, :target, situation)
+
       :room ->
         situation.room.actors
-        |> Enum.each(fn actor -> Mud.Perceiver.perceive(actor.perceiver, act, role(situation, actor), situation) end)
+        |> Enum.each(fn actor ->
+          Mud.Perceiver.perceive(actor.perceiver, act, role(situation, actor), situation)
+        end)
     end
   end
 

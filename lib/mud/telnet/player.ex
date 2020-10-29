@@ -48,12 +48,20 @@ defmodule Mud.Telnet.Player do
     {:noreply, state}
   end
 
-  def handle_cast({:perceive, Mud.Command.Look, :actor, situation}, state = %{protocol: protocol, state: :playing}) do
-    actors_str = situation.room.actors
-    |> Enum.filter(fn actor -> actor.id != situation.actor.id end)
-    |> Enum.map(fn actor -> "You see #{actor.name} standing here.\r\n" end)
+  def handle_cast(
+        {:perceive, Mud.Command.Look, :actor, situation},
+        state = %{protocol: protocol, state: :playing}
+      ) do
+    actors_str =
+      situation.room.actors
+      |> Enum.filter(fn actor -> actor.id != situation.actor.id end)
+      |> Enum.map(fn actor -> "You see #{actor.name} standing here.\r\n" end)
 
-    Protocol.writeline(protocol, "#{situation.room.name}\r\n#{situation.room.description}\r\n#{actors_str}")
+    Protocol.writeline(
+      protocol,
+      "#{situation.room.name}\r\n#{situation.room.description}\r\n#{actors_str}"
+    )
+
     {:noreply, state}
   end
 
@@ -67,6 +75,7 @@ defmodule Mud.Telnet.Player do
         Logger.info("Player [#{actor_id}] from ip [#{Protocol.ip(protocol)}] quit.")
         Protocol.disconnect(protocol)
         {:stop, :normal, state}
+
       _ ->
         Protocol.writeline(protocol, "#{situation.actor.name} quits.")
         {:noreply, state}
@@ -82,7 +91,10 @@ defmodule Mud.Telnet.Player do
   end
 
   def handle_cast({:perceive, action, role}, state) do
-    Logger.error("Mud.Player.perceive - unhandled action #{inspect action}, role #{inspect role}")
+    Logger.error(
+      "Mud.Player.perceive - unhandled action #{inspect(action)}, role #{inspect(role)}"
+    )
+
     {:noreply, state}
   end
 

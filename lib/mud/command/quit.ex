@@ -15,17 +15,25 @@ defmodule Mud.Command.Quit do
       "quit" ->
         Mud.RoomServer.run(room_pid, fn room ->
           actor = Mud.Room.find_actor(room, actor_id)
-          Mud.Action.dispatch({__MODULE__, :success}, :room, %Mud.Situation{actor: actor, room: room})
+
+          Mud.Action.dispatch({__MODULE__, :success}, :room, %Mud.Situation{
+            actor: actor,
+            room: room
+          })
+
           {:ok, nil, room}
         end)
+
         Mud.WorldServer.remove_actor(world_pid, actor_id)
         {:ok}
+
       _ ->
         Mud.RoomServer.run(room_pid, fn room ->
           actor = Mud.Room.find_actor(room, actor_id)
           Mud.Action.dispatch({__MODULE__, :failure}, :actor, %Mud.Situation{actor: actor})
           {:ok, nil, room}
         end)
+
         {:ok}
     end
   end

@@ -6,7 +6,7 @@ defmodule Mud.Command do
   @callback scope() :: scopes
   @callback parse(String.t(), String.t(), String.t()) :: on_parse
   # this doesn't really fit anymore... probably need to come up with a better design
-  #@callback execute(Mud.Actor.t(), term, args) :: term
+  # @callback execute(Mud.Actor.t(), term, args) :: term
 
   @commands [
     Mud.Command.Look,
@@ -17,6 +17,7 @@ defmodule Mud.Command do
 
   def parse_command(input) do
     [cmd | args] = String.split(input, " ", trim: true, parts: 2)
+
     commands()
     |> Stream.map(fn module -> {module, module.parse(cmd, args, input)} end)
     |> Stream.filter(fn {_module, args} -> args != nil end)

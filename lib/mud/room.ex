@@ -2,7 +2,12 @@ defmodule Mud.Room do
   defstruct id: nil, name: "", description: "", actors: []
 
   @type id_t :: String.t()
-  @type t :: %__MODULE__{id: id_t, name: String.t(), description: String.t(), actors: [Mud.Actor.t()]}
+  @type t :: %__MODULE__{
+          id: id_t,
+          name: String.t(),
+          description: String.t(),
+          actors: [Mud.Actor.t()]
+        }
 
   def new(id \\ nil) do
     %Mud.Room{
