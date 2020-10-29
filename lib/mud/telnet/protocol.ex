@@ -46,7 +46,7 @@ defmodule Mud.Telnet.Protocol do
 
   # we don't actually use this init
   def init(_args) do
-    {:error}
+    {:stop, nil}
   end
 
   def handle_call(:ip, _from, state = %{ip: ip}) do
