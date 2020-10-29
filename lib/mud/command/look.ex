@@ -1,4 +1,6 @@
 defmodule Mud.Command.Look do
+  alias Mud.{Actor, Room}
+
   @behaviour Mud.Command
 
   def scope(), do: :room
@@ -11,7 +13,7 @@ defmodule Mud.Command.Look do
     end
   end
 
-  def execute(actor, room, _args) do
+  def execute(%Actor{} = actor, %Room{} = room, _args) do
     Mud.Action.dispatch(Mud.Command.Look, :actor, %Mud.Situation{actor: actor, room: room})
     {:ok, nil, room}
   end

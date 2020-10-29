@@ -13,7 +13,7 @@ defmodule Mud.CommandDispatcher do
   end
 
   @spec add_actor(Actor.t()) :: :ok
-  def add_actor(actor) do
+  def add_actor(%Actor{} = actor) do
     GenServer.call(__MODULE__, {:add_actor, actor})
   end
 

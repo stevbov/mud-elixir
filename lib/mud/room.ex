@@ -22,17 +22,17 @@ defmodule Mud.Room do
   end
 
   @spec add_actor(t, Actor.t()) :: t
-  def add_actor(room, actor) do
+  def add_actor(%Room{} = room, %Actor{} = actor) do
     %{room | actors: [actor | room.actors]}
   end
 
   @spec find_actor(t, Actor.id_t()) :: Actor.t()
-  def find_actor(room, actor_id) do
+  def find_actor(%Room{} = room, actor_id) do
     room.actors |> Enum.find(fn actor -> actor.id == actor_id end)
   end
 
   @spec remove_actor(t, Actor.id_t()) :: t
-  def remove_actor(room, actor_id) do
+  def remove_actor(%Room{} = room, actor_id) do
     updated_actors = Enum.filter(room.actors, fn actor -> actor.id != actor_id end)
     %{room | actors: updated_actors}
   end

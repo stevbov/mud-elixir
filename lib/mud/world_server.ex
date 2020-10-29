@@ -24,12 +24,12 @@ defmodule Mud.WorldServer do
   end
 
   @spec add_room(pid, Room.t()) :: :ok
-  def add_room(pid, room) do
+  def add_room(pid, %Room{} = room) do
     GenServer.call(pid, {:add_room, room})
   end
 
   @spec add_actor(pid, Actor.t(), Room.id_t() | nil) :: Room.id_t()
-  def add_actor(pid, actor, to_room_id \\ nil) do
+  def add_actor(pid, %Actor{} = actor, to_room_id \\ nil) do
     GenServer.call(pid, {:add_actor, actor, to_room_id})
   end
 
