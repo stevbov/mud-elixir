@@ -22,9 +22,10 @@ defmodule Mud.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ranch, "2.0.0"},
-      {:uuid, "1.1.8"},
-      {:dialyxir, "1.0.0", only: [:dev], runtime: false}
+      {:ranch, "~> 2.0.0"},
+      {:elixir_uuid, "~> 1.2.1"},
+      {:stm_agent, git: "https://github.com/stevbov/stm_agent.git"},
+      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
