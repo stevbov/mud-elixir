@@ -1,37 +1,43 @@
 defmodule Mud.RoomServer do
   alias Mud.Room
 
-  use GenServer
-
-  @type fun :: (Room.t() -> {:ok, term, Room.t()})
-
   @spec start_link(Room.t()) :: {:ok, pid}
   def start_link(room) do
-    GenServer.start_link(__MODULE__, room)
+    StmAgent.start_link(fn -> room end)
   end
 
-  @spec run(pid, fun) :: term
-  def run(pid, fun) do
-    GenServer.call(pid, {:run, fun})
+  @spec get(pid, fun, term) :: term
+  def get(pid, fun, tx) do
+    StmAgent.get!(pid, fun, tx)
   end
 
-  @spec run_async(pid, fun) :: :ok
-  def run_async(pid, fun) do
-    GenServer.cast(pid, {:run, fun})
+  @spec update(pid, fun, term) :: term
+  def update(pid, fun, tx) do
+    StmAgent.update!(pid, fun, tx)
   end
 
-  # GenServer callbacks
-  def init(room) do
-    {:ok, room}
+  @spec get_and_update(pid, fun, term) :: term
+  def get_and_update(pid, fun, tx) do
+    StmAgent.get_and_update!(pid, fun, tx)
   end
 
-  def handle_call({:run, fun}, _from, room) do
-    {:ok, reply, new_room} = fun.(room)
-    {:reply, reply, new_room}
+  @spec cast(pid, fun, term) :: term
+  def cast(pid, fun, tx) do
+    StmAgent.cast!(pid, fun, tx)
   end
 
-  def handle_cast({:run, fun}, room) do
-    {:ok, _reply, new_room} = fun.(room)
-    {:noreply, new_room}
+  @spec dirty_get(pid, fun) :: term
+  def dirty_get(pid, fun) do
+    StmAgent.dirty_get(pid, fun)
+  end
+
+  @spec dirty_update(pid, fun) :: term
+  def dirty_update(pid, fun) do
+    StmAgent.dirty_update(pid, fun)
+  end
+
+  @spec dirty_get_and_update(pid, fun) :: term
+  def dirty_get_and_update(pid, fun) do
+    StmAgent.dirty_get_and_update(pid, fun)
   end
 end

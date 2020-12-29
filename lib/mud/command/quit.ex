@@ -13,26 +13,33 @@ defmodule Mud.Command.Quit do
   def execute(actor_id, room_pid, world_pid, %{full_input: full_input}) do
     case full_input do
       "quit" ->
-        Mud.RoomServer.run(room_pid, fn room ->
-          actor = Mud.Room.find_actor(room, actor_id)
+        StmAgent.Transaction.transaction(fn tx ->
+          Mud.RoomServer.update(
+            room_pid,
+            fn room ->
+              actor = Mud.Room.find_actor(room, actor_id)
 
-          Mud.Action.dispatch({__MODULE__, :success}, :room, %Mud.Situation{
-            actor: actor,
-            room: room
-          })
+              Mud.Action.dispatch({__MODULE__, :success}, :room, %Mud.Situation{
+                actor: actor,
+                room: room
+              })
 
-          {:ok, nil, room}
+              Mud.Room.remove_actor(room, actor_id)
+            end,
+            tx
+          )
         end)
 
         Mud.WorldServer.remove_actor(world_pid, actor_id)
         {:ok}
 
       _ ->
-        Mud.RoomServer.run(room_pid, fn room ->
-          actor = Mud.Room.find_actor(room, actor_id)
-          Mud.Action.dispatch({__MODULE__, :failure}, :actor, %Mud.Situation{actor: actor})
-          {:ok, nil, room}
-        end)
+        actor =
+          Mud.RoomServer.dirty_get(room_pid, fn room ->
+            Mud.Room.find_actor(room, actor_id)
+          end)
+
+        Mud.Action.dispatch({__MODULE__, :failure}, :actor, %Mud.Situation{actor: actor})
 
         {:ok}
     end

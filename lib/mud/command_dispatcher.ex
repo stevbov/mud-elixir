@@ -30,7 +30,7 @@ defmodule Mud.CommandDispatcher do
 
     case module.scope() do
       :room ->
-        RoomServer.run_async(room_pid, fn room ->
+        RoomServer.dirty_update(room_pid, fn room ->
           actor = Room.find_actor(room, actor_id)
           module.execute(actor, room, args)
         end)

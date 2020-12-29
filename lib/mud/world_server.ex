@@ -79,9 +79,8 @@ defmodule Mud.WorldServer do
 
     updated_actor_rooms = Map.put(state.actor_rooms, actor.id, to_room_id)
 
-    Mud.RoomServer.run(room_pid, fn room ->
-      updated_room = Mud.Room.add_actor(room, actor)
-      {:ok, nil, updated_room}
+    Mud.RoomServer.dirty_update(room_pid, fn room ->
+      Mud.Room.add_actor(room, actor)
     end)
 
     updated_state = %{state | actor_rooms: updated_actor_rooms}
@@ -94,9 +93,8 @@ defmodule Mud.WorldServer do
 
     {_, updated_actor_rooms} = Map.pop!(state.actor_rooms, actor_id)
 
-    Mud.RoomServer.run(room_pid, fn room ->
-      updated_room = Mud.Room.remove_actor(room, actor_id)
-      {:ok, nil, updated_room}
+    Mud.RoomServer.dirty_update(room_pid, fn room ->
+      Mud.Room.remove_actor(room, actor_id)
     end)
 
     updated_state = %{state | actor_rooms: updated_actor_rooms}

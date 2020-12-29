@@ -1,2 +1,4 @@
-- change RoomServer and WorldServer to use StmAgent
+- unify Command interface between world and room commands
+- change WorldServer to use StmAgent
+- events need to abide by StmAgent transactions
 - remove WorldServer bottleneck
