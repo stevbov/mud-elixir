@@ -3,8 +3,6 @@ defmodule Mud.Command.Quit do
 
   @behaviour Mud.Command
 
-  def scope(), do: :world
-
   def parse(cmd, _args, full_input) do
     cond do
       String.starts_with?("quit", cmd) -> %{full_input: full_input}

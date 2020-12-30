@@ -1,10 +1,8 @@
 defmodule Mud.Command do
   alias Mud.WorldServer
 
-  @type scopes :: :room | :world
   @type args :: map
 
-  @callback scope() :: scopes
   @callback parse(String.t(), String.t(), String.t()) :: args | nil
   @callback execute(term, Mud.Room.id_t(), Mud.Actor.id_t(), args) :: Mud.Room.t()
 
