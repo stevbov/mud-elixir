@@ -41,7 +41,7 @@ defmodule Mud.Telnet.Player do
     if String.trim(input) != "" do
       case Command.parse_command(input) do
         {:ok, {module, args}} ->
-          CommandDispatcher.dispatch(actor_id, module, args)
+          Command.execute_command(module, actor_id, args)
 
         _ ->
           Protocol.writeline(protocol, "Huh!?")

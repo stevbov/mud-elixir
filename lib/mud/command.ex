@@ -1,4 +1,6 @@
 defmodule Mud.Command do
+  alias Mud.WorldServer
+
   @type scopes :: :room | :world
   @type args :: map
 
@@ -22,5 +24,13 @@ defmodule Mud.Command do
     |> Stream.map(fn module -> {module, module.parse(cmd, args, input)} end)
     |> Stream.filter(fn {_module, args} -> args != nil end)
     |> Enum.fetch(0)
+  end
+
+  @spec execute_command(module, Actor.id_t(), term) :: :ok
+  def execute_command(module, actor_id, args) do
+    StmAgent.Transaction.transaction(fn tx ->
+      room_id = WorldServer.find_actor_room(actor_id, tx)
+      module.execute(tx, room_id, actor_id, args)
+    end)
   end
 end
