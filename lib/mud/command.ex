@@ -14,21 +14,28 @@ defmodule Mud.Command do
   @spec commands() :: [module]
   def commands(), do: @commands
 
-  @spec parse_command(String.t()) :: {:ok, {module, args}} | :error
-  def parse_command(input) do
+  @spec execute(Actor.id_t(), String.t()) :: :ok | :invalid
+  def execute(actor_id, input) do
+    case parse(input) do
+      {:ok, {module, args}} ->
+        StmAgent.Transaction.transaction(fn tx ->
+          room_id = WorldServer.find_actor_room(actor_id, tx)
+          module.execute(tx, room_id, actor_id, args)
+        end)
+
+        :ok
+
+      _ ->
+        :invalid
+    end
+  end
+
+  defp parse(input) do
     [cmd | args] = String.split(input, " ", trim: true, parts: 2)
 
     commands()
     |> Stream.map(fn module -> {module, module.parse(cmd, args, input)} end)
     |> Stream.filter(fn {_module, args} -> args != nil end)
     |> Enum.fetch(0)
-  end
-
-  @spec execute_command(module, Actor.id_t(), term) :: :ok
-  def execute_command(module, actor_id, args) do
-    StmAgent.Transaction.transaction(fn tx ->
-      room_id = WorldServer.find_actor_room(actor_id, tx)
-      module.execute(tx, room_id, actor_id, args)
-    end)
   end
 end
