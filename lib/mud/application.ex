@@ -10,7 +10,8 @@ defmodule Mud.Application do
   def start(_type, _args) do
     children = [
       {Mud.Telnet.Listener, [@default_port]},
-      {Mud.CommandDispatcher, []}
+      {Registry, keys: :unique, name: Mud.RoomServer.Registry},
+      {Mud.WorldServer, []}
     ]
 
     opts = [strategy: :one_for_one, name: Mud.Supervisor]

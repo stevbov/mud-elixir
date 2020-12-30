@@ -1,6 +1,6 @@
 defmodule Mud.Telnet.Player do
   alias Mud.Telnet.{Player, Protocol}
-  alias Mud.{Actor, Command, CommandDispatcher, Situation}
+  alias Mud.{Actor, Command, CommandDispatcher, Situation, WorldServer}
   require Logger
 
   defstruct pid: nil
@@ -28,7 +28,7 @@ defmodule Mud.Telnet.Player do
 
   def handle_cast({:input, input}, state = %{protocol: protocol, state: :get_name}) do
     actor = Actor.new(%Player{pid: self()}) |> Map.put(:name, input)
-    CommandDispatcher.add_actor(actor)
+    WorldServer.add_actor(actor)
     GenServer.cast(self(), {:input, "look"})
     Protocol.writeline(protocol, "Welcome to the MUD, #{actor.name}!")
     {:noreply, %{state | state: :playing, actor_id: actor.id}}

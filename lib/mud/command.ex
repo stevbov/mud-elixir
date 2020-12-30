@@ -4,8 +4,7 @@ defmodule Mud.Command do
 
   @callback scope() :: scopes
   @callback parse(String.t(), String.t(), String.t()) :: args | nil
-  # this doesn't really fit anymore... probably need to come up with a better design
-  # @callback execute(Mud.Actor.t(), term, args) :: term
+  @callback execute(term, Mud.Room.id_t(), Mud.Actor.id_t(), args) :: Mud.Room.t()
 
   @commands [
     Mud.Command.Look,

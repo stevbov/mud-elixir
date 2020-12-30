@@ -1,4 +1,6 @@
 defmodule Mud.Command.Quit do
+  alias Mud.RoomServer
+
   @behaviour Mud.Command
 
   def scope(), do: :world
@@ -10,38 +12,37 @@ defmodule Mud.Command.Quit do
     end
   end
 
-  def execute(actor_id, room_pid, world_pid, %{full_input: full_input}) do
+  def execute(tx, room_id, actor_id, %{full_input: full_input}) do
     case full_input do
       "quit" ->
-        StmAgent.Transaction.transaction(fn tx ->
-          Mud.RoomServer.update(
-            room_pid,
-            fn room ->
+        RoomServer.run(
+          room_id,
+          fn room ->
+            StmAgent.Transaction.on_verify(tx, fn ->
               actor = Mud.Room.find_actor(room, actor_id)
 
               Mud.Action.dispatch({__MODULE__, :success}, :room, %Mud.Situation{
                 actor: actor,
                 room: room
               })
+            end)
+          end,
+          tx
+        )
 
-              Mud.Room.remove_actor(room, actor_id)
-            end,
-            tx
-          )
-        end)
-
-        Mud.WorldServer.remove_actor(world_pid, actor_id)
-        {:ok}
+        Mud.WorldServer.remove_actor(actor_id, tx)
 
       _ ->
-        actor =
-          Mud.RoomServer.dirty_get(room_pid, fn room ->
-            Mud.Room.find_actor(room, actor_id)
-          end)
-
-        Mud.Action.dispatch({__MODULE__, :failure}, :actor, %Mud.Situation{actor: actor})
-
-        {:ok}
+        RoomServer.run(
+          room_id,
+          fn room ->
+            StmAgent.Transaction.on_verify(tx, fn ->
+              actor = Mud.Room.find_actor(room, actor_id)
+              Mud.Action.dispatch({__MODULE__, :failure}, :actor, %Mud.Situation{actor: actor})
+            end)
+          end,
+          tx
+        )
     end
   end
 end
