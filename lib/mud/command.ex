@@ -1,6 +1,8 @@
 defmodule Mud.Command do
   alias Mud.WorldServer
 
+  require Logger
+
   @type args :: map
 
   @callback parse(String.t(), String.t(), String.t()) :: args | nil
@@ -16,18 +18,25 @@ defmodule Mud.Command do
 
   @spec execute(Actor.id_t(), String.t()) :: :ok | :invalid
   def execute(actor_id, input) do
-    case parse(input) do
-      {:ok, {module, args}} ->
-        StmAgent.Transaction.transaction(fn tx ->
-          room_id = WorldServer.find_actor_room(actor_id, tx)
-          module.execute(tx, room_id, actor_id, args)
-        end)
+    {us, result} =
+      :timer.tc(fn ->
+        case parse(input) do
+          {:ok, {module, args}} ->
+            StmAgent.Transaction.transaction(fn tx ->
+              room_id = WorldServer.find_actor_room(actor_id, tx)
+              module.execute(tx, room_id, actor_id, args)
+            end)
 
-        :ok
+            :ok
 
-      _ ->
-        :invalid
-    end
+          _ ->
+            :invalid
+        end
+      end)
+
+    Logger.info("Execute #{inspect(input)} in #{us / 1_000}ms")
+
+    result
   end
 
   defp parse(input) do
