@@ -12,15 +12,11 @@ defmodule Mud.Command.Look do
   end
 
   def execute(tx, room_id, actor_id, _args) do
-    Mud.RoomServer.run(
-      room_id,
-      fn room ->
-        StmAgent.Transaction.on_verify(tx, fn ->
-          actor = Room.find_actor(room, actor_id)
-          Mud.Action.dispatch(Mud.Command.Look, :actor, %Mud.Situation{actor: actor, room: room})
-        end)
-      end,
-      tx
-    )
+    Mud.RoomServer.run(room_id, tx, fn room ->
+      StmAgent.Transaction.on_verify(tx, fn ->
+        actor = Room.find_actor(room, actor_id)
+        Mud.Action.dispatch(Mud.Command.Look, :actor, %Mud.Situation{actor: actor, room: room})
+      end)
+    end)
   end
 end
