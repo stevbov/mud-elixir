@@ -1,7 +1,7 @@
 defmodule Mud.Actor do
   alias Mud.{Actor, Perceiver}
 
-  defstruct id: nil, name: "", perceiver: nil
+  defstruct id: nil, name: "", inventory: [], perceiver: nil
 
   @type id_t :: String.t()
 

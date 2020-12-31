@@ -28,6 +28,102 @@ defmodule Mud.Telnet.Player do
 
   def handle_cast({:input, input}, state = %{protocol: protocol, state: :get_name}) do
     actor = Actor.new(%Player{pid: self()}) |> Map.put(:name, input)
+
+    actor = %{
+      actor
+      | inventory: [Actor.new(Mud.Npc.new()) |> Map.put(:name, "a sword") | actor.inventory]
+    }
+
+    actor = %{
+      actor
+      | inventory: [Actor.new(Mud.Npc.new()) |> Map.put(:name, "a shield") | actor.inventory]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a shirt of chain mail") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a hard leather cuirass") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a pair of shoes") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a pair of pants") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a pair of steel gauntlets")
+          | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a pair of steel greaves") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a steel gorget") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [Actor.new(Mud.Npc.new()) |> Map.put(:name, "a steel visor") | actor.inventory]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a steel helmet") | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [
+          Actor.new(Mud.Npc.new()) |> Map.put(:name, "a pair of steel vambraces")
+          | actor.inventory
+        ]
+    }
+
+    actor = %{
+      actor
+      | inventory: [Actor.new(Mud.Npc.new()) |> Map.put(:name, "a black cloak") | actor.inventory]
+    }
+
+    chest_inventory =
+      for _n <- 1..3000, do: Actor.new(Mud.Npc.new()) |> Map.put(:name, "a loaf of bread")
+
+    chest =
+      Actor.new(Mud.Npc.new())
+      |> Map.put(:name, "a backpack of holding")
+      |> Map.put(:inventory, chest_inventory)
+
+    actor = %{actor | inventory: [chest | actor.inventory]}
+
     WorldServer.add_actor(actor)
     GenServer.cast(self(), {:input, "look"})
     Protocol.writeline(protocol, "Welcome to the MUD, #{actor.name}!")

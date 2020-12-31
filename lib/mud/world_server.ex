@@ -5,7 +5,7 @@ defmodule Mud.WorldServer do
 
   require Logger
 
-  defstruct room_ids: nil, actor_rooms: %{}, default_room_id: nil
+  defstruct room_ids: nil, actor_rooms: %{}, actor_actors: %{}, default_room_id: nil
 
   @spec start_link(term) :: {:ok, pid}
   def start_link(_opts) do
@@ -17,6 +17,27 @@ defmodule Mud.WorldServer do
     StmAgent.Transaction.transaction(fn tx ->
       Mud.WorldServer.add_room(Room.new(), tx)
     end)
+
+    Mud.WorldServer.add_actor(Actor.new(Mud.Npc.new()) |> Map.put(:name, "a sword"))
+    Mud.WorldServer.add_actor(Actor.new(Mud.Npc.new()) |> Map.put(:name, "a shield"))
+    Mud.WorldServer.add_actor(Actor.new(Mud.Npc.new()) |> Map.put(:name, "a shirt of chain mail"))
+
+    Mud.WorldServer.add_actor(
+      Actor.new(Mud.Npc.new())
+      |> Map.put(:name, "a hard leather cuirass")
+    )
+
+    Mud.WorldServer.add_actor(Actor.new(Mud.Npc.new()) |> Map.put(:name, "a bronze cuirass"))
+
+    for _n <- 1..20 do
+      chest_inventory =
+        for _n <- 1..3000, do: Actor.new(Mud.Npc.new()) |> Map.put(:name, "a loaf of bread")
+
+      Actor.new(Mud.Npc.new())
+      |> Map.put(:name, "a wooden chest")
+      |> Map.put(:inventory, chest_inventory)
+    end
+    |> Enum.each(&Mud.WorldServer.add_actor/1)
 
     result
   end
@@ -63,9 +84,15 @@ defmodule Mud.WorldServer do
         to_room_id = to_room_id || state.default_room_id
 
         updated_actor_rooms = Map.put(state.actor_rooms, actor.id, to_room_id)
+
+        updated_actor_actors =
+          Enum.reduce(actor.inventory, state.actor_actors, fn a, acc ->
+            Map.put(acc, a.id, actor.id)
+          end)
+
         Mud.RoomServer.update(to_room_id, tx, fn room -> Mud.Room.add_actor(room, actor) end)
 
-        %{state | actor_rooms: updated_actor_rooms}
+        %{state | actor_rooms: updated_actor_rooms, actor_actors: updated_actor_actors}
       end)
     end)
   end
