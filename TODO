@@ -1,2 +1,7 @@
-- events need to abide by StmAgent transactions
+- add movement
+- re-assess how action dispatching works with command execution
+  - maybe commands should return list of actions to perceive, rather than doing it directly
+  - examine memory usage
+    - maybe the room agents themselves need to do it on_commit so that memory isn't needlessly copied around
+    - maybe need to be careful of copying data to individual perceiver process too
 - remove WorldServer bottleneck
