@@ -16,10 +16,16 @@ defmodule Mud.Action do
   def dispatch(act, to, %Situation{} = situation) do
     case to do
       :actor when situation.actor != nil ->
-        Mud.Perceiver.perceive(situation.actor.perceiver, act, :actor, situation)
+        Mud.Perceiver.perceive(situation.actor.perceiver, situation.actor, act, :actor, situation)
 
       :target when situation.target != nil ->
-        Mud.Perceiver.perceive(situation.target.perceiver, act, :target, situation)
+        Mud.Perceiver.perceive(
+          situation.target.perceiver,
+          situation.target,
+          act,
+          :target,
+          situation
+        )
 
       :actor_and_target ->
         dispatch(act, :actor, situation)
@@ -28,7 +34,7 @@ defmodule Mud.Action do
       :room ->
         situation.room.actors
         |> Enum.each(fn actor ->
-          Mud.Perceiver.perceive(actor.perceiver, act, role(situation, actor), situation)
+          Mud.Perceiver.perceive(actor.perceiver, actor, act, role(situation, actor), situation)
         end)
     end
 

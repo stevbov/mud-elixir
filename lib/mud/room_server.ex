@@ -39,6 +39,16 @@ defmodule Mud.RoomServer do
     StmAgent.cast(via_tuple(id), tx, fun)
   end
 
+  @spec on_commit(Room.id_t(), term, fun) :: term
+  def on_commit(id, tx, fun) do
+    StmAgent.on_commit(via_tuple(id), tx, fun)
+  end
+
+  @spec on_abort(Room.id_t(), term, fun) :: term
+  def on_abort(id, tx, fun) do
+    StmAgent.on_abort(via_tuple(id), tx, fun)
+  end
+
   @spec dirty_get(Room.id_t(), fun) :: term
   def dirty_get(id, fun) do
     StmAgent.dirty_get(via_tuple(id), fun)
