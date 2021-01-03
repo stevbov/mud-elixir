@@ -11,11 +11,6 @@ defmodule Mud.Command.Quit do
   end
 
   def execute(tx, room_id, actor_id, %{full_input: full_input}) do
-    RoomServer.run(room_id, tx, fn _room ->
-      # TODO: fix dirty hack - this is so the transaction has a reference to the room
-      :ok
-    end)
-
     can_quit =
       RoomServer.get(room_id, tx, fn room ->
         actor = Mud.Room.find_actor(room, actor_id)
