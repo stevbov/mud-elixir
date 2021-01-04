@@ -1,7 +1,7 @@
 defmodule Mud.Room do
-  alias Mud.{Room, Actor}
+  alias Mud.{Direction, Exit, Room, Actor}
 
-  defstruct id: nil, name: "", description: "", actors: []
+  defstruct id: nil, name: "", description: "", exits: %{}, actors: []
 
   @type id_t :: String.t()
 
@@ -9,6 +9,7 @@ defmodule Mud.Room do
           id: id_t | nil,
           name: String.t(),
           description: String.t(),
+          exits: %{},
           actors: [Mud.Actor.t()]
         }
 
@@ -35,5 +36,16 @@ defmodule Mud.Room do
   def remove_actor(%Room{} = room, actor_id) do
     updated_actors = Enum.filter(room.actors, fn actor -> actor.id != actor_id end)
     %{room | actors: updated_actors}
+  end
+
+  @spec link(Room.t(), Room.t(), Direction.t()) :: {Room.t(), Room.t()}
+  def link(%Room{} = room1, %Room{} = room2, direction) do
+    exit1 = Exit.new() |> Map.put(:to_room_id, room2.id)
+    exit2 = Exit.new() |> Map.put(:to_room_id, room1.id)
+
+    new_room1 = %{room1 | exits: Map.put(room1.exits, direction, exit1)}
+    new_room2 = %{room2 | exits: Map.put(room2.exits, Direction.reverse(direction), exit2)}
+
+    {new_room1, new_room2}
   end
 end

@@ -9,6 +9,7 @@ defmodule Mud.Command do
   @callback execute(term, Mud.Room.id_t(), Mud.Actor.id_t(), args) :: Mud.Room.t()
 
   @commands [
+    Mud.Command.Move,
     Mud.Command.Look,
     Mud.Command.Quit
   ]

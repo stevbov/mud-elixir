@@ -1,7 +1,7 @@
 defmodule Mud.WorldServer do
   use StmAgent
 
-  alias Mud.{Actor, Room}
+  alias Mud.{Actor, Room, RoomServer}
 
   require Logger
 
@@ -14,8 +14,13 @@ defmodule Mud.WorldServer do
     result =
       StmAgent.start_link(fn -> %Mud.WorldServer{room_ids: MapSet.new()} end, name: __MODULE__)
 
+    room1 = Room.new()
+    room2 = Room.new()
+    {room1, room2} = Room.link(room1, room2, :north)
+
     StmAgent.Transaction.transaction(fn tx ->
-      Mud.WorldServer.add_room(Room.new(), tx)
+      Mud.WorldServer.add_room(room1, tx)
+      Mud.WorldServer.add_room(room2, tx)
     end)
 
     Mud.WorldServer.add_actor(Actor.new(Mud.Npc.new()) |> Map.put(:name, "a sword"))
@@ -95,6 +100,29 @@ defmodule Mud.WorldServer do
         %{state | actor_rooms: updated_actor_rooms, actor_actors: updated_actor_actors}
       end)
     end)
+  end
+
+  @spec move_actor(Actor.id_t(), Room.id_t(), term) :: any
+  def move_actor(actor_id, to_room_id, tx) do
+    old_room_id =
+      StmAgent.get_and_update!(__MODULE__, tx, fn state ->
+        old_room_id = Map.get(state.actor_rooms, actor_id)
+        updated_actor_rooms = Map.put(state.actor_rooms, actor_id, to_room_id)
+        {old_room_id, %{state | actor_rooms: updated_actor_rooms}}
+      end)
+
+    actor =
+      RoomServer.get_and_update(old_room_id, tx, fn room ->
+        actor = Room.find_actor(room, actor_id)
+        new_room = Room.remove_actor(room, actor_id)
+        {actor, new_room}
+      end)
+
+    RoomServer.update(to_room_id, tx, fn room ->
+      Room.add_actor(room, actor)
+    end)
+
+    actor
   end
 
   @spec remove_actor(Actor.id_t(), term) :: :ok
