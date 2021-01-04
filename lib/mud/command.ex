@@ -7,6 +7,13 @@ defmodule Mud.Command do
 
   @callback parse(String.t(), String.t(), String.t()) :: args | nil
   @callback execute(term, Mud.Room.id_t(), Mud.Actor.id_t(), args) :: Mud.Room.t()
+  @callback perceive(
+              Mud.ActorController.t(),
+              term,
+              Mud.Actor.t(),
+              Mud.Action.role(),
+              Mud.Situation.t()
+            ) :: any
 
   @commands [
     Mud.Command.Move,

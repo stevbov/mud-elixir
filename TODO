@@ -1,4 +1,4 @@
-- add movement
+- clean up aliases
 - re-assess how action dispatching works with command execution
   - maybe commands should return list of actions to perceive, rather than doing it directly
   - examine memory usage

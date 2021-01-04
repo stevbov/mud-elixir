@@ -9,32 +9,39 @@ end
 defmodule Mud.Action do
   alias Mud.{Actor, Situation}
 
-  @type to :: :actor | :target | :actor_and_target | :room
+  @type to :: :actor | :target | :actor_and_target | :room | :room_not_actor
   @type role :: :actor | :target | :other
 
-  @spec dispatch(term, to, Situation.t()) :: :ok
-  def dispatch(act, to, %Situation{} = situation) do
+  @spec dispatch(module, term, to, Situation.t()) :: :ok
+  def dispatch(cmd_module, args, to, %Situation{} = situation) do
     case to do
       :actor when situation.actor != nil ->
-        Mud.Perceiver.perceive(situation.actor.perceiver, situation.actor, act, :actor, situation)
+        cmd_module.perceive(situation.actor.controller, args, situation.actor, :actor, situation)
 
       :target when situation.target != nil ->
-        Mud.Perceiver.perceive(
-          situation.target.perceiver,
+        cmd_module.perceive(
+          situation.target.controller,
+          args,
           situation.target,
-          act,
           :target,
           situation
         )
 
       :actor_and_target ->
-        dispatch(act, :actor, situation)
-        dispatch(act, :target, situation)
+        dispatch(cmd_module, args, :actor, situation)
+        dispatch(cmd_module, args, :target, situation)
 
       :room ->
         situation.room.actors
         |> Enum.each(fn actor ->
-          Mud.Perceiver.perceive(actor.perceiver, actor, act, role(situation, actor), situation)
+          cmd_module.perceive(actor.controller, args, actor, role(situation, actor), situation)
+        end)
+
+      :room_not_actor ->
+        situation.room.actors
+        |> Enum.filter(fn actor -> role(situation, actor) != :actor end)
+        |> Enum.each(fn actor ->
+          cmd_module.perceive(actor.controller, args, actor, role(situation, actor), situation)
         end)
     end
 

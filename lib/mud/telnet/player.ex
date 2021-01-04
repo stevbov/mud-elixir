@@ -172,9 +172,8 @@ defmodule Mud.Telnet.Player do
   end
 end
 
-defimpl Mud.Perceiver, for: Mud.Telnet.Player do
+defimpl Mud.ActorController, for: Mud.Telnet.Player do
   alias Mud.Telnet.Player
-  alias Mud.Direction
 
   require Logger
 
@@ -184,90 +183,5 @@ defimpl Mud.Perceiver, for: Mud.Telnet.Player do
 
   def quit(%{pid: pid}) do
     Player.quit(pid)
-  end
-
-  def perceive(%{pid: pid}, _actor, Mud.Command.Look, :actor, situation) do
-    actors_str =
-      situation.room.actors
-      |> Enum.filter(fn actor -> actor.id != situation.actor.id end)
-      |> Enum.map(fn actor -> "You see #{actor.name} standing here.\r\n" end)
-
-    exits_str =
-      situation.room.exits
-      |> Enum.filter(fn {_direction, exit} -> exit.to_room_id != nil end)
-      |> Enum.map(fn {direction, _exit} -> Direction.to_string(direction) end)
-      |> Enum.join(", ")
-
-    Player.writeline(
-      pid,
-      "#{situation.room.name}\r\n#{situation.room.description}\r\nExits: #{exits_str}\r\n#{
-        actors_str
-      }"
-    )
-  end
-
-  def perceive(%{pid: pid}, _actor, {Mud.Command.Quit, :success}, role, situation) do
-    case role do
-      :actor ->
-        Player.writeline(pid, "You quit.")
-
-      _ ->
-        Player.writeline(pid, "#{situation.actor.name} quits.")
-    end
-  end
-
-  def perceive(%{pid: pid}, _actor, {Mud.Command.Quit, :failure}, :actor, _situation) do
-    Player.writeline(pid, "You must type 'quit' to quit.")
-  end
-
-  def perceive(%{pid: pid}, _actor, {Mud.Command.Move, :leave, direction}, role, situation) do
-    case role do
-      :actor ->
-        Player.writeline(pid, "You leave #{Mud.Direction.to_leave_string(direction)}.")
-
-      _ ->
-        Player.writeline(
-          pid,
-          "#{situation.actor.name} leaves #{Mud.Direction.to_leave_string(direction)}."
-        )
-    end
-  end
-
-  def perceive(
-        %{pid: pid} = player,
-        actor,
-        {Mud.Command.Move, :enter, direction},
-        role,
-        situation
-      ) do
-    case role do
-      :actor ->
-        Player.writeline(
-          pid,
-          "You leave #{Mud.Direction.to_leave_string(Mud.Direction.reverse(direction))}."
-        )
-
-        perceive(player, actor, Mud.Command.Look, :actor, situation)
-
-      _ ->
-        Player.writeline(
-          pid,
-          "#{situation.actor.name} arrives from #{Mud.Direction.to_enter_string(direction)}."
-        )
-    end
-  end
-
-  def perceive(
-        %{pid: pid} = player,
-        actor,
-        {Mud.Command.Move, :no_exit, direction},
-        :actor,
-        situation
-      ) do
-    Player.writeline(pid, "You can't go #{Mud.Direction.to_string(direction)}.")
-  end
-
-  def perceive(_player, _actor, act, role, _situation) do
-    Logger.error("Mud.Player.perceive - unhandled action #{inspect(act)}, role #{inspect(role)}")
   end
 end
